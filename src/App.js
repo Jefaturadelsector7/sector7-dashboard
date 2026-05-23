@@ -4,8 +4,8 @@ import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebas
 import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, where } from "firebase/firestore";
 
 const hardcodedUsers = {
-  "rocio@sector7.edu.mx": { password: "Sector7@2025", role: "admin", name: "Rocío Elvira Reyes Montalvo", zona: null, escuela: null },
-  "director@sector7.edu.mx": { password: "Director@2025", role: "director", name: "Director Escuela", zona: null, escuela: "Gral. Lauro Villar" }
+  "rocio@sector7.edu.mx": { password: "Sector7@2025", role: "admin", name: "Rocío Elvira Reyes Montalvo" },
+  "director@sector7.edu.mx": { password: "Director@2025", role: "director", name: "Director Escuela" }
 };
 
 export default function App() {
@@ -19,7 +19,6 @@ export default function App() {
   const [supervisiones, setSupervisiones] = useState([]);
   const [userRole, setUserRole] = useState(null);
   const [userZona, setUserZona] = useState(null);
-  const [userEscuela, setUserEscuela] = useState(null);
   const [userName, setUserName] = useState("");
   const [showEscuelasForm, setShowEscuelasForm] = useState(false);
   const [showSupervisionesForm, setShowSupervisionesForm] = useState(false);
@@ -27,7 +26,9 @@ export default function App() {
   const [supervisionesForm, setSupervisionesForm] = useState({ zona: "", supervisor: "" });
 
   useEffect(() => {
-    getDocs(query(collection(db, "supervisiones"), orderBy("zona"))).then((snapshot) => { setSupervisiones(snapshot.docs.map(d => ({ id: d.id, ...d.data() }))); }).catch(err => console.error("Error:", err));
+    getDocs(query(collection(db, "supervisiones"), orderBy("zona"))).then((snapshot) => {
+      setSupervisiones(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+    }).catch(err => console.error("Error:", err));
   }, []);
 
   useEffect(() => {
@@ -39,7 +40,6 @@ export default function App() {
           const userData = hardcodedUsers[userEmail];
           setUserRole(userData.role);
           setUserZona(userData.zona);
-          setUserEscuela(userData.escuela);
           setUserName(userData.name);
         } else {
           try {
@@ -48,14 +48,9 @@ export default function App() {
               const userData = userDoc.docs[0].data();
               setUserRole(userData.role || "supervisor");
               setUserZona(userData.zona || userData.zoneId);
-              setUserEscuela(userData.escuela || null);
               setUserName(userData.name || userData.nombre || userEmail);
-            } else {
-              setUserRole("supervisor");
-              setUserName(userEmail);
             }
           } catch (err) {
-            console.error("Error:", err);
             setUserRole("supervisor");
           }
         }
@@ -63,7 +58,6 @@ export default function App() {
         setUser(null);
         setUserRole(null);
         setUserZona(null);
-        setUserEscuela(null);
         setUserName("");
       }
       setLoading(false);
@@ -78,39 +72,23 @@ export default function App() {
       q = query(collection(db, "escuelas"), orderBy("nombre"));
     } else if (userRole === "supervisor" && userZona) {
       q = query(collection(db, "escuelas"), where("nombreZona", "==", userZona), orderBy("nombre"));
-    } else if (userRole === "director" && userEscuela) {
-      q = query(collection(db, "escuelas"), where("nombre", "==", userEscuela));
     } else {
       return;
     }
-    getDocs(q).then((snapshot) => { setEscuelas(snapshot.docs.map(d => ({ id: d.id, ...d.data() }))); }).catch(err => console.error("Error:", err));
-  }, [user, userRole, userZona, userEscuela]);
+    getDocs(q).then((snapshot) => {
+      setEscuelas(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+    }).catch(err => console.error("Error:", err));
+  }, [user, userRole, userZona]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     if (hardcodedUsers[email] && hardcodedUsers[email].password === password) {
-      signInWithEmailAndPassword(auth, email, password).catch(err => { setError("Error: " + err.message); });
+      signInWithEmailAndPassword(auth, email, password).catch(err => setError("Error: " + err.message));
       setEmail("");
       setPassword("");
     } else {
-      try {
-        const userQuery = await getDocs(query(collection(db, "users"), where("email", "==", email)));
-        if (!userQuery.empty) {
-          const userData = userQuery.docs[0].data();
-          if (userData.role === "supervisor" && password === "Supervisor@2025") {
-            signInWithEmailAndPassword(auth, email, password).catch(err => { setError("Error: " + err.message); });
-            setEmail("");
-            setPassword("");
-          } else {
-            setError("Email o contraseña incorrectos");
-          }
-        } else {
-          setError("Email o contraseña incorrectos");
-        }
-      } catch (err) {
-        setError("Email o contraseña incorrectos");
-      }
+      setError("Email o contraseña incorrectos");
     }
   };
 
@@ -118,7 +96,6 @@ export default function App() {
     signOut(auth);
     setUserRole(null);
     setUserZona(null);
-    setUserEscuela(null);
     setUserName("");
   };
 
@@ -153,7 +130,7 @@ export default function App() {
       setEscuelasForm({ nombre: "", director: "", supervisionId: "", estudiantes: "", docentes: "" });
       setShowEscuelasForm(false);
       getDocs(query(collection(db, "escuelas"), orderBy("nombre"))).then(snapshot => setEscuelas(snapshot.docs.map(d => ({ id: d.id, ...d.data() }))));
-    }).catch(err => { setError("Error: " + err.message); });
+    }).catch(err => setError("Error: " + err.message));
   };
 
   const handleSupervisionesSubmit = (e) => {
@@ -167,14 +144,14 @@ export default function App() {
       setSupervisionesForm({ zona: "", supervisor: "" });
       setShowSupervisionesForm(false);
       getDocs(query(collection(db, "supervisiones"), orderBy("zona"))).then(snapshot => setSupervisiones(snapshot.docs.map(d => ({ id: d.id, ...d.data() }))));
-    }).catch(err => { setError("Error: " + err.message); });
+    }).catch(err => setError("Error: " + err.message));
   };
 
   const eliminarEscuela = (id) => {
     if (window.confirm("¿Eliminar esta escuela?")) {
       deleteDoc(doc(db, "escuelas", id)).then(() => {
         getDocs(query(collection(db, "escuelas"), orderBy("nombre"))).then(snapshot => setEscuelas(snapshot.docs.map(d => ({ id: d.id, ...d.data() }))));
-      }).catch(err => { setError("Error: " + err.message); });
+      }).catch(err => setError("Error: " + err.message));
     }
   };
 
@@ -182,7 +159,7 @@ export default function App() {
     if (window.confirm("¿Eliminar?")) {
       deleteDoc(doc(db, "supervisiones", id)).then(() => {
         getDocs(query(collection(db, "supervisiones"), orderBy("zona"))).then(snapshot => setSupervisiones(snapshot.docs.map(d => ({ id: d.id, ...d.data() }))));
-      }).catch(err => { setError("Error: " + err.message); });
+      }).catch(err => setError("Error: " + err.message));
     }
   };
 
@@ -191,9 +168,9 @@ export default function App() {
   if (!user) {
     return (
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", background: "#1e40af" }}>
-        <div style={{ background: "white", padding: "40px", borderRadius: "8px", width: "100%", maxWidth: "400px", boxShadow: "0 10px 40px rgba(0,0,0,0.2)" }}>
-          <h1 style={{ color: "#1e40af", textAlign: "center", margin: "0 0 10px 0" }}>SECTOR 7</h1>
-          <p style={{ color: "#666", textAlign: "center", margin: "0 0 30px 0" }}>Primarias H. Matamoros</p>
+        <div style={{ background: "white", padding: "40px", borderRadius: "8px", width: "100%", maxWidth: "400px" }}>
+          <h1 style={{ color: "#1e40af", textAlign: "center" }}>SECTOR 7</h1>
+          <p style={{ color: "#666", textAlign: "center" }}>Primarias H. Matamoros</p>
           {error && <div style={{ background: "#fee2e2", color: "#991b1b", padding: "12px", borderRadius: "4px", marginBottom: "20px", fontSize: "14px" }}>{error}</div>}
           <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" style={{ padding: "10px", border: "1px solid #ddd", borderRadius: "4px" }} required />
@@ -212,7 +189,7 @@ export default function App() {
       <header style={{ background: "#1e40af", color: "white", padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h1 style={{ margin: 0 }}>SECTOR 7 - TABLERO DE MANDOS</h1>
         <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
-          <span style={{ fontSize: "14px" }}>{userName} ({userRole})</span>
+          <span>{userName} ({userRole})</span>
           <button onClick={handleLogout} style={{ padding: "8px 16px", background: "#dc2626", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Salir</button>
         </div>
       </header>
@@ -242,34 +219,34 @@ export default function App() {
                       </select>
                       <input type="number" name="estudiantes" placeholder="Número de estudiantes" value={escuelasForm.estudiantes} onChange={handleEscuelasChange} style={{ padding: "10px", border: "1px solid #ddd", borderRadius: "4px" }} required />
                       <input type="number" name="docentes" placeholder="Número de docentes" value={escuelasForm.docentes} onChange={handleEscuelasChange} style={{ padding: "10px", border: "1px solid #ddd", borderRadius: "4px" }} required />
-                      <button type="submit" style={{ padding: "10px", background: "#16a34a", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "600" }}>Guardar Escuela</button>
+                      <button type="submit" style={{ padding: "10px", background: "#16a34a", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "600" }}>Guardar</button>
                     </form>
                   </div>
                 )}
-                <div style={{ background: "white", padding: "20px", borderRadius: "8px", overflowX: "auto" }}>
+                <div style={{ background: "white", padding: "20px", borderRadius: "8px" }}>
                   <h2 style={{ color: "#1e40af", margin: "0 0 20px 0" }}>Escuelas ({escuelas.length})</h2>
-                  {escuelas.length === 0 ? <p style={{ color: "#666" }}>No hay escuelas registradas</p> : (
-                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px", minWidth: "700px" }}>
+                  {escuelas.length === 0 ? <p>No hay escuelas</p> : (
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
                       <thead><tr style={{ background: "#f3f4f6", borderBottom: "2px solid #e5e7eb" }}>
-                        <th style={{ padding: "8px", textAlign: "left", fontWeight: "600" }}>Escuela</th>
-                        <th style={{ padding: "8px", textAlign: "left", fontWeight: "600" }}>Director</th>
-                        <th style={{ padding: "8px", textAlign: "left", fontWeight: "600" }}>Zona</th>
-                        <th style={{ padding: "8px", textAlign: "left", fontWeight: "600" }}>Sup.</th>
-                        <th style={{ padding: "8px", textAlign: "left", fontWeight: "600" }}>Est.</th>
-                        <th style={{ padding: "8px", textAlign: "left", fontWeight: "600" }}>Doc.</th>
-                        <th style={{ padding: "8px", textAlign: "center", fontWeight: "600" }}>Acción</th>
+                        <th style={{ padding: "10px", textAlign: "left", fontWeight: "600" }}>Escuela</th>
+                        <th style={{ padding: "10px", textAlign: "left", fontWeight: "600" }}>Director</th>
+                        <th style={{ padding: "10px", textAlign: "left", fontWeight: "600" }}>Zona</th>
+                        <th style={{ padding: "10px", textAlign: "left", fontWeight: "600" }}>Supervisor</th>
+                        <th style={{ padding: "10px", textAlign: "center", fontWeight: "600" }}>Est.</th>
+                        <th style={{ padding: "10px", textAlign: "center", fontWeight: "600" }}>Doc.</th>
+                        <th style={{ padding: "10px", textAlign: "center", fontWeight: "600" }}>Acción</th>
                       </tr></thead>
                       <tbody>
-                        {escuelas.map((escuela) => (
-                          <tr key={escuela.id} style={{ borderBottom: "1px solid #e5e7eb" }}>
-                            <td style={{ padding: "8px" }}>{escuela.nombre?.substring(0, 20)}</td>
-                            <td style={{ padding: "8px" }}>{escuela.director?.substring(0, 15)}</td>
-                            <td style={{ padding: "8px" }}>{escuela.nombreZona}</td>
-                            <td style={{ padding: "8px" }}>{escuela.supervisor?.substring(0, 10)}</td>
-                            <td style={{ padding: "8px", textAlign: "center" }}>{escuela.estudiantes}</td>
-                            <td style={{ padding: "8px", textAlign: "center" }}>{escuela.docentes}</td>
-                            <td style={{ padding: "8px", textAlign: "center" }}>
-                              <button onClick={() => eliminarEscuela(escuela.id)} style={{ padding: "4px 8px", background: "#dc2626", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "11px" }}>🗑️</button>
+                        {escuelas.map((e) => (
+                          <tr key={e.id} style={{ borderBottom: "1px solid #e5e7eb" }}>
+                            <td style={{ padding: "10px" }}>{e.nombre}</td>
+                            <td style={{ padding: "10px" }}>{e.director}</td>
+                            <td style={{ padding: "10px" }}>{e.nombreZona}</td>
+                            <td style={{ padding: "10px" }}>{e.supervisor}</td>
+                            <td style={{ padding: "10px", textAlign: "center" }}>{e.estudiantes}</td>
+                            <td style={{ padding: "10px", textAlign: "center" }}>{e.docentes}</td>
+                            <td style={{ padding: "10px", textAlign: "center" }}>
+                              <button onClick={() => eliminarEscuela(e.id)} style={{ padding: "5px 10px", background: "#dc2626", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "11px" }}>Eliminar</button>
                             </td>
                           </tr>
                         ))}
@@ -291,26 +268,26 @@ export default function App() {
                     <form onSubmit={handleSupervisionesSubmit} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
                       <input type="text" name="zona" placeholder="Nombre de la zona" value={supervisionesForm.zona} onChange={handleSupervisionesChange} style={{ padding: "10px", border: "1px solid #ddd", borderRadius: "4px" }} required />
                       <input type="text" name="supervisor" placeholder="Nombre del supervisor" value={supervisionesForm.supervisor} onChange={handleSupervisionesChange} style={{ padding: "10px", border: "1px solid #ddd", borderRadius: "4px" }} required />
-                      <button type="submit" style={{ padding: "10px", background: "#16a34a", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "600" }}>Guardar Supervisión</button>
+                      <button type="submit" style={{ padding: "10px", background: "#16a34a", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "600" }}>Guardar</button>
                     </form>
                   </div>
                 )}
                 <div style={{ background: "white", padding: "20px", borderRadius: "8px" }}>
                   <h2 style={{ color: "#1e40af", margin: "0 0 20px 0" }}>Supervisiones ({supervisiones.length})</h2>
-                  {supervisiones.length === 0 ? <p style={{ color: "#666" }}>No hay supervisiones</p> : (
-                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
+                  {supervisiones.length === 0 ? <p>No hay supervisiones</p> : (
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
                       <thead><tr style={{ background: "#f3f4f6", borderBottom: "2px solid #e5e7eb" }}>
-                        <th style={{ padding: "12px", textAlign: "left", fontWeight: "600" }}>Zona</th>
-                        <th style={{ padding: "12px", textAlign: "left", fontWeight: "600" }}>Supervisor</th>
-                        <th style={{ padding: "12px", textAlign: "left", fontWeight: "600" }}>Acción</th>
+                        <th style={{ padding: "10px", textAlign: "left", fontWeight: "600" }}>Zona</th>
+                        <th style={{ padding: "10px", textAlign: "left", fontWeight: "600" }}>Supervisor</th>
+                        <th style={{ padding: "10px", textAlign: "center", fontWeight: "600" }}>Acción</th>
                       </tr></thead>
                       <tbody>
-                        {supervisiones.map((supervision) => (
-                          <tr key={supervision.id} style={{ borderBottom: "1px solid #e5e7eb" }}>
-                            <td style={{ padding: "12px" }}>{supervision.zona}</td>
-                            <td style={{ padding: "12px" }}>{supervision.supervisor}</td>
-                            <td style={{ padding: "12px" }}>
-                              <button onClick={() => eliminarSupervision(supervision.id)} style={{ padding: "5px 10px", background: "#dc2626", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "12px" }}>🗑️</button>
+                        {supervisiones.map((s) => (
+                          <tr key={s.id} style={{ borderBottom: "1px solid #e5e7eb" }}>
+                            <td style={{ padding: "10px" }}>{s.zona}</td>
+                            <td style={{ padding: "10px" }}>{s.supervisor}</td>
+                            <td style={{ padding: "10px", textAlign: "center" }}>
+                              <button onClick={() => eliminarSupervision(s.id)} style={{ padding: "5px 10px", background: "#dc2626", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "11px" }}>Eliminar</button>
                             </td>
                           </tr>
                         ))}
@@ -327,21 +304,21 @@ export default function App() {
           <div>
             <h2 style={{ color: "#1e40af", marginBottom: "20px" }}>Escuelas de {userZona}</h2>
             <div style={{ background: "white", padding: "20px", borderRadius: "8px" }}>
-              {escuelas.length === 0 ? <p style={{ color: "#666" }}>No hay escuelas en tu zona</p> : (
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
+              {escuelas.length === 0 ? <p>No hay escuelas</p> : (
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead><tr style={{ background: "#f3f4f6", borderBottom: "2px solid #e5e7eb" }}>
-                    <th style={{ padding: "12px", textAlign: "left", fontWeight: "600" }}>Escuela</th>
-                    <th style={{ padding: "12px", textAlign: "left", fontWeight: "600" }}>Director</th>
-                    <th style={{ padding: "12px", textAlign: "left", fontWeight: "600" }}>Estudiantes</th>
-                    <th style={{ padding: "12px", textAlign: "left", fontWeight: "600" }}>Docentes</th>
+                    <th style={{ padding: "10px", textAlign: "left", fontWeight: "600" }}>Escuela</th>
+                    <th style={{ padding: "10px", textAlign: "left", fontWeight: "600" }}>Director</th>
+                    <th style={{ padding: "10px", textAlign: "left", fontWeight: "600" }}>Estudiantes</th>
+                    <th style={{ padding: "10px", textAlign: "left", fontWeight: "600" }}>Docentes</th>
                   </tr></thead>
                   <tbody>
-                    {escuelas.map((escuela) => (
-                      <tr key={escuela.id} style={{ borderBottom: "1px solid #e5e7eb" }}>
-                        <td style={{ padding: "12px" }}>{escuela.nombre}</td>
-                        <td style={{ padding: "12px" }}>{escuela.director}</td>
-                        <td style={{ padding: "12px" }}>{escuela.estudiantes}</td>
-                        <td style={{ padding: "12px" }}>{escuela.docentes}</td>
+                    {escuelas.map((e) => (
+                      <tr key={e.id} style={{ borderBottom: "1px solid #e5e7eb" }}>
+                        <td style={{ padding: "10px" }}>{e.nombre}</td>
+                        <td style={{ padding: "10px" }}>{e.director}</td>
+                        <td style={{ padding: "10px" }}>{e.estudiantes}</td>
+                        <td style={{ padding: "10px" }}>{e.docentes}</td>
                       </tr>
                     ))}
                   </tbody>
