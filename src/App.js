@@ -171,7 +171,7 @@ export default function App() {
   };
 
   const eliminarEscuela = (id) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar esta escuela?")) {
+    if (window.confirm("¿Eliminar esta escuela?")) {
       deleteDoc(doc(db, "escuelas", id)).then(() => {
         getDocs(query(collection(db, "escuelas"), orderBy("nombre"))).then(snapshot => setEscuelas(snapshot.docs.map(d => ({ id: d.id, ...d.data() }))));
       }).catch(err => { setError("Error: " + err.message); });
@@ -179,7 +179,7 @@ export default function App() {
   };
 
   const eliminarSupervision = (id) => {
-    if (window.confirm("¿Estás seguro?")) {
+    if (window.confirm("¿Eliminar?")) {
       deleteDoc(doc(db, "supervisiones", id)).then(() => {
         getDocs(query(collection(db, "supervisiones"), orderBy("zona"))).then(snapshot => setSupervisiones(snapshot.docs.map(d => ({ id: d.id, ...d.data() }))));
       }).catch(err => { setError("Error: " + err.message); });
@@ -246,30 +246,30 @@ export default function App() {
                     </form>
                   </div>
                 )}
-                <div style={{ background: "white", padding: "20px", borderRadius: "8px" }}>
+                <div style={{ background: "white", padding: "20px", borderRadius: "8px", overflowX: "auto" }}>
                   <h2 style={{ color: "#1e40af", margin: "0 0 20px 0" }}>Escuelas ({escuelas.length})</h2>
                   {escuelas.length === 0 ? <p style={{ color: "#666" }}>No hay escuelas registradas</p> : (
-                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px", minWidth: "700px" }}>
                       <thead><tr style={{ background: "#f3f4f6", borderBottom: "2px solid #e5e7eb" }}>
-                        <th style={{ padding: "12px", textAlign: "left", fontWeight: "600" }}>Escuela</th>
-                        <th style={{ padding: "12px", textAlign: "left", fontWeight: "600" }}>Director</th>
-                        <th style={{ padding: "12px", textAlign: "left", fontWeight: "600" }}>Zona</th>
-                        <th style={{ padding: "12px", textAlign: "left", fontWeight: "600" }}>Supervisor</th>
-                        <th style={{ padding: "12px", textAlign: "left", fontWeight: "600" }}>Estudiantes</th>
-                        <th style={{ padding: "12px", textAlign: "left", fontWeight: "600" }}>Docentes</th>
-                        <th style={{ padding: "12px", textAlign: "left", fontWeight: "600" }}>Acción</th>
+                        <th style={{ padding: "8px", textAlign: "left", fontWeight: "600" }}>Escuela</th>
+                        <th style={{ padding: "8px", textAlign: "left", fontWeight: "600" }}>Director</th>
+                        <th style={{ padding: "8px", textAlign: "left", fontWeight: "600" }}>Zona</th>
+                        <th style={{ padding: "8px", textAlign: "left", fontWeight: "600" }}>Sup.</th>
+                        <th style={{ padding: "8px", textAlign: "left", fontWeight: "600" }}>Est.</th>
+                        <th style={{ padding: "8px", textAlign: "left", fontWeight: "600" }}>Doc.</th>
+                        <th style={{ padding: "8px", textAlign: "center", fontWeight: "600" }}>Acción</th>
                       </tr></thead>
                       <tbody>
                         {escuelas.map((escuela) => (
                           <tr key={escuela.id} style={{ borderBottom: "1px solid #e5e7eb" }}>
-                            <td style={{ padding: "12px" }}>{escuela.nombre}</td>
-                            <td style={{ padding: "12px" }}>{escuela.director}</td>
-                            <td style={{ padding: "12px" }}>{escuela.nombreZona}</td>
-                            <td style={{ padding: "12px" }}>{escuela.supervisor}</td>
-                            <td style={{ padding: "12px" }}>{escuela.estudiantes}</td>
-                            <td style={{ padding: "12px" }}>{escuela.docentes}</td>
-                            <td style={{ padding: "12px" }}>
-                              <button onClick={() => eliminarEscuela(escuela.id)} style={{ padding: "5px 10px", background: "#dc2626", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "12px" }}>Eliminar</button>
+                            <td style={{ padding: "8px" }}>{escuela.nombre?.substring(0, 20)}</td>
+                            <td style={{ padding: "8px" }}>{escuela.director?.substring(0, 15)}</td>
+                            <td style={{ padding: "8px" }}>{escuela.nombreZona}</td>
+                            <td style={{ padding: "8px" }}>{escuela.supervisor?.substring(0, 10)}</td>
+                            <td style={{ padding: "8px", textAlign: "center" }}>{escuela.estudiantes}</td>
+                            <td style={{ padding: "8px", textAlign: "center" }}>{escuela.docentes}</td>
+                            <td style={{ padding: "8px", textAlign: "center" }}>
+                              <button onClick={() => eliminarEscuela(escuela.id)} style={{ padding: "4px 8px", background: "#dc2626", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "11px" }}>🗑️</button>
                             </td>
                           </tr>
                         ))}
@@ -310,7 +310,7 @@ export default function App() {
                             <td style={{ padding: "12px" }}>{supervision.zona}</td>
                             <td style={{ padding: "12px" }}>{supervision.supervisor}</td>
                             <td style={{ padding: "12px" }}>
-                              <button onClick={() => eliminarSupervision(supervision.id)} style={{ padding: "5px 10px", background: "#dc2626", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "12px" }}>Eliminar</button>
+                              <button onClick={() => eliminarSupervision(supervision.id)} style={{ padding: "5px 10px", background: "#dc2626", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "12px" }}>🗑️</button>
                             </td>
                           </tr>
                         ))}
