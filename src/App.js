@@ -1,7 +1,7 @@
 ﻿import React, { useState, useEffect } from "react";
 import { auth, db } from "./firebase";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
-import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, where } from "firebase/firestore";
+import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, where, updateDoc } from "firebase/firestore";
 
 const hardcodedUsers = {
   "rocio@sector7.edu.mx": { password: "Sector7@2025", role: "admin", name: "Rocío Elvira Reyes Montalvo", zona: null, escuela: null },
@@ -276,3 +276,4 @@ export default function App() {
     </div>
   );
 }
+
