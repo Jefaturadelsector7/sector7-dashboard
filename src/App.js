@@ -1,7 +1,7 @@
 ﻿import React, { useState, useEffect } from "react";
 import { auth, db } from "./firebase";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
-import { collection, getDocs, query, orderBy, where } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, where } from "firebase/firestore";`nimport MapaInteractivo from "./components/MapaInteractivo";
 
 const hardcodedUsers = {
   "rocio@sector7.edu.mx": { password: "Sector7@2025", role: "admin", name: "Rocío Elvira Reyes Montalvo" },
@@ -198,85 +198,8 @@ export default function App() {
             {error && <div style={{ background: "#fee2e2", color: "#991b1b", padding: "12px", borderRadius: "4px", marginBottom: "20px" }}>{error}</div>}
             
             {activeTab === "mapa" && (
-              <div>
-                <h2 style={{ color: "#1e40af", marginBottom: "20px" }}>📍 Mapa del Sector 7</h2>
-                <div style={{ background: "white", padding: "20px", borderRadius: "8px", marginBottom: "20px" }}>
-                  <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3590.8748921847457!2d-97.50100!3d25.88000!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjXCsDUyJzQ4LjAiTiA5N8KwMzAnMzYuMCJX!5e0!3m2!1ses!2smx!4v1"
-                    width="100%"
-                    height="500"
-                    style={{ border: 0, borderRadius: "8px" }}
-                    allowFullScreen=""
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                  ></iframe>
-                </div>
-                <div style={{ background: "white", padding: "20px", borderRadius: "8px" }}>
-                  <h3 style={{ color: "#1e40af", marginBottom: "15px" }}>Supervisiones del Sector 7</h3>
-                  {supervisiones_coords.map((sup, idx) => (
-                    <div key={idx} style={{ padding: "12px", borderBottom: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div>
-                        <strong style={{ color: "#1e40af" }}>{sup.zona}</strong>
-                        <p style={{ margin: "4px 0 0 0", fontSize: "13px", color: "#666" }}>{sup.nombre}</p>
-                        <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: "#999" }}>{sup.direccion}</p>
-                      </div>
-                      <a href={`https://www.google.com/maps?q=${sup.lat},${sup.lng}`} target="_blank" rel="noopener noreferrer" style={{ padding: "8px 12px", background: "#2563eb", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "12px", textDecoration: "none" }}>
-                        Ver en Maps
-                      </a>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === "escuelas" && (
-              <div>
-                <button onClick={() => setShowEscuelasForm(!showEscuelasForm)} style={{ padding: "10px 20px", background: "#2563eb", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "600", marginBottom: "20px" }}>
-                  {showEscuelasForm ? "Cerrar" : "Agregar Escuela"}
-                </button>
-                {showEscuelasForm && (
-                  <div style={{ background: "white", padding: "20px", borderRadius: "8px", marginBottom: "20px" }}>
-                    <h2 style={{ color: "#1e40af", margin: "0 0 20px 0" }}>Nueva Escuela</h2>
-                    <form onSubmit={handleEscuelasSubmit} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-                      <input type="text" name="nombre" placeholder="Nombre de la escuela" value={escuelasForm.nombre} onChange={handleEscuelasChange} style={{ padding: "10px", border: "1px solid #ddd", borderRadius: "4px" }} required />
-                      <input type="text" name="director" placeholder="Director" value={escuelasForm.director} onChange={handleEscuelasChange} style={{ padding: "10px", border: "1px solid #ddd", borderRadius: "4px" }} required />
-                      <select name="supervisionId" value={escuelasForm.supervisionId} onChange={handleEscuelasChange} style={{ padding: "10px", border: "1px solid #ddd", borderRadius: "4px" }} required>
-                        <option value="">-- Seleccionar Zona --</option>
-                        {supervisiones.map((supervision) => (<option key={supervision.id} value={supervision.id}>{supervision.zona}</option>))}
-                      </select>
-                      <input type="number" name="estudiantes" placeholder="Número de estudiantes" value={escuelasForm.estudiantes} onChange={handleEscuelasChange} style={{ padding: "10px", border: "1px solid #ddd", borderRadius: "4px" }} required />
-                      <input type="number" name="docentes" placeholder="Número de docentes" value={escuelasForm.docentes} onChange={handleEscuelasChange} style={{ padding: "10px", border: "1px solid #ddd", borderRadius: "4px" }} required />
-                      <button type="submit" style={{ padding: "10px", background: "#16a34a", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "600" }}>Guardar</button>
-                    </form>
-                  </div>
-                )}
-                <div style={{ background: "white", padding: "20px", borderRadius: "8px" }}>
-                  <h2 style={{ color: "#1e40af", margin: "0 0 20px 0" }}>Escuelas ({escuelas.length})</h2>
-                  {escuelas.length === 0 ? <p>No hay escuelas</p> : (
-                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
-                      <thead><tr style={{ background: "#f3f4f6", borderBottom: "2px solid #e5e7eb" }}>
-                        <th style={{ padding: "10px", textAlign: "left", fontWeight: "600" }}>Escuela</th>
-                        <th style={{ padding: "10px", textAlign: "left", fontWeight: "600" }}>Director</th>
-                        <th style={{ padding: "10px", textAlign: "left", fontWeight: "600" }}>Zona</th>
-                        <th style={{ padding: "10px", textAlign: "left", fontWeight: "600" }}>Supervisor</th>
-                        <th style={{ padding: "10px", textAlign: "center", fontWeight: "600" }}>Est.</th>
-                        <th style={{ padding: "10px", textAlign: "center", fontWeight: "600" }}>Doc.</th>
-                      </tr></thead>
-                      <tbody>
-                        {escuelas.map((e) => (
-                          <tr key={e.id} style={{ borderBottom: "1px solid #e5e7eb" }}>
-                            <td style={{ padding: "10px" }}>{e.nombre}</td>
-                            <td style={{ padding: "10px" }}>{e.director}</td>
-                            <td style={{ padding: "10px" }}>{e.nombreZona}</td>
-                            <td style={{ padding: "10px" }}>{e.supervisor}</td>
-                            <td style={{ padding: "10px", textAlign: "center" }}>{e.estudiantes}</td>
-                            <td style={{ padding: "10px", textAlign: "center" }}>{e.docentes}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
+              <div style={{ background: "white", padding: "20px", borderRadius: "8px" }}>
+                <MapaInteractivo supervisiones={supervisiones_coords} />
               </div>
             )}
 
@@ -350,3 +273,5 @@ export default function App() {
     </div>
   );
 }
+
+

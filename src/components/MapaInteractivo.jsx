@@ -1,0 +1,112 @@
+﻿import React, { useEffect, useRef } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+const icono = L.icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+
+const MapaInteractivo = ({ supervisiones = [] }) => {
+  const mapaRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+
+  const supervisionesConCoordenadas = [
+    {
+      zona: "Zona 189",
+      supervisor: "Mtro. Rogelio Meza Campos",
+      ubicacion: "Esc. Tamaulipas",
+      lat: 25.8768,
+      lng: -97.4976,
+      direccion: "Calle Tercera y Emiliano Zapata, Col. Ejido 20 de Noviembre"
+    },
+    {
+      zona: "Zona 18",
+      supervisor: "Mtro. Oliverio Cante Ramírez",
+      ubicacion: "Supervisión",
+      lat: 25.8820,
+      lng: -97.5010,
+      direccion: "Calle Isaac Newton #125, Col. Nuevo Progreso"
+    },
+    {
+      zona: "Zona 61",
+      supervisor: "Mtra. Guadalupe Valenzuela Duarte",
+      ubicacion: "Esc. Francisco I Madero",
+      lat: 25.8750,
+      lng: -97.5050,
+      direccion: "Calle Cedro S/N, Col. Mariano"
+    },
+    {
+      zona: "Zona 156",
+      supervisor: "Tatyana Velázquez Arellano",
+      ubicacion: "Esc. Club Rotario Matamoros Sur",
+      lat: 25.8700,
+      lng: -97.4950,
+      direccion: "Calle Presa de la Angostura #51, Col. Rodríguez"
+    },
+    {
+      zona: "Zona 175",
+      supervisor: "Mtro. Alejandro César Ríos Ochoa",
+      ubicacion: "Escuela México",
+      lat: 25.8850,
+      lng: -97.5100,
+      direccion: "Calle Lomas e Insurgentes Sur, Col. México"
+    }
+  ];
+
+  useEffect(() => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+    }
+
+    const mapa = L.map(mapaRef.current).setView([25.8770, -97.5000], 13);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(mapa);
+
+    supervisionesConCoordenadas.forEach((sup) => {
+      const popup = 
+        <div style="font-family: Arial, sans-serif; width: 250px;">
+          <h3 style="margin: 5px 0; color: #2c3e50;">${sup.zona}</h3>
+          <hr style="margin: 8px 0;">
+          <p style="margin: 5px 0;"><strong>📍 Ubicación:</strong> ${sup.ubicacion}</p>
+          <p style="margin: 5px 0;"><strong>👤 Supervisor:</strong> ${sup.supervisor}</p>
+          <p style="margin: 5px 0;"><strong>📬 Dirección:</strong> ${sup.direccion}</p>
+        </div>
+      ;
+
+      L.marker([sup.lat, sup.lng], { icon: icono })
+        .bindPopup(popup)
+        .addTo(mapa);
+    });
+
+    mapInstanceRef.current = mapa;
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+      }
+    };
+  }, []);
+
+  return (
+    <div style={{ padding: "20px" }}>
+      <h2 style={{ color: "#2c3e50", marginBottom: "10px" }}>📍 Mapa Sector 7 - Supervisiones Escolares</h2>
+      <p style={{ color: "#7f8c8d", marginBottom: "15px" }}>Haz clic en los marcadores para ver información de las supervisiones</p>
+      <div ref={mapaRef} style={{ width: "100%", height: "600px", borderRadius: "8px", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)", border: "1px solid #ecf0f1" }} />
+      <div style={{ marginTop: "20px", padding: "15px", backgroundColor: "#f8f9fa", borderRadius: "8px" }}>
+        <h3 style={{ color: "#2c3e50", marginTop: 0 }}>Leyenda</h3>
+        <p style={{ margin: "5px 0", fontSize: "14px" }}>🔵 <strong>Marcadores azules:</strong> Ubicación de supervisiones escolares</p>
+        <p style={{ margin: "5px 0", fontSize: "14px" }}>Total de supervisiones: <strong>5</strong></p>
+      </div>
+    </div>
+  );
+};
+
+export default MapaInteractivo;

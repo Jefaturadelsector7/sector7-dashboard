@@ -3,3 +3,10 @@
 .env.local
 build
 .DS_Store
+
+serviceAccountKey.json
+*.key.json
+
+
+serviceAccountKey.json
+
