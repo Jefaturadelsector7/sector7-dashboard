@@ -1,7 +1,8 @@
 ﻿import React, { useState, useEffect } from "react";
 import { auth, db } from "./firebase";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
-import { collection, getDocs, query, orderBy, where } from "firebase/firestore";`nimport MapaInteractivo from "./components/MapaInteractivo";
+import { collection, getDocs, query, orderBy, where } from "firebase/firestore";
+import MapaInteractivo from "./components/MapaInteractivo";
 
 const hardcodedUsers = {
   "rocio@sector7.edu.mx": { password: "Sector7@2025", role: "admin", name: "Rocío Elvira Reyes Montalvo" },
@@ -273,5 +274,6 @@ export default function App() {
     </div>
   );
 }
+
 
 
