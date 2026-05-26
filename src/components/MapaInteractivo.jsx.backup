@@ -74,7 +74,7 @@ const MapaInteractivo = ({ supervisiones = [] }) => {
       const popup = 
         <div style="font-family: Arial, sans-serif; width: 250px;">
           <h3 style="margin: 5px 0; color: #2c3e50;">${sup.zona}</h3>
-          <hr style="margin: 8px 0;" />
+          <hr style="margin: 8px 0;">
           <p style="margin: 5px 0;"><strong>📍 Ubicación:</strong> ${sup.ubicacion}</p>
           <p style="margin: 5px 0;"><strong>👤 Supervisor:</strong> ${sup.supervisor}</p>
           <p style="margin: 5px 0;"><strong>📬 Dirección:</strong> ${sup.direccion}</p>
@@ -110,9 +110,3 @@ const MapaInteractivo = ({ supervisiones = [] }) => {
 };
 
 export default MapaInteractivo;
-
-
-
-
-
-
